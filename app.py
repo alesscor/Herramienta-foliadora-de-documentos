@@ -4,7 +4,13 @@ from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
 def obtiene_secuencia():
-    return "Enviados - 2038"
+    texto = "Ninguno - 1"
+    try:
+        file1 = open("foliado.txt","r") 
+        texto = file1.readline()
+    except:
+        print("Archivo foliado.txt no encontrado o con contenido inválido")
+    return texto
 
 def modifica_pdf(num, tmp, clase_docs, secuencia):
     c = canvas.Canvas(tmp)
@@ -26,9 +32,9 @@ if __name__ == "__main__":
     secuencia=int(clase_docs.split(" - ")[1])
     clase_docs=clase_docs.split(" - ")[0]
 
-    for filename in os.listdir("Herramienta foliadora de documentos/pdfs-sin-foliar"):
+    for filename in os.listdir("pdfs-sin-foliar"):
         base = os.path.basename(filename)
-        path = os.path.join('Herramienta foliadora de documentos/pdfs-sin-foliar', filename)
+        path = os.path.join('pdfs-sin-foliar', filename)
         if filename.endswith('.pdf'):            
             with open(path, "rb") as f:
                 pdf = PdfFileReader(f,strict=False)
@@ -36,11 +42,11 @@ if __name__ == "__main__":
                 modifica_pdf(n,tmp,clase_docs,secuencia)
                 secuencia=secuencia+n
 
-                if not os.path.isdir("Herramienta foliadora de documentos/pdfs-foliados/"):
-                    os.mkdir("Herramienta foliadora de documentos/pdfs-foliados/")
+                if not os.path.isdir("pdfs-foliados/"):
+                    os.mkdir("pdfs-foliados/")
                 with open(tmp, "rb") as ftmp:
                     numberPdf = PdfFileReader(ftmp)
-                    newpath = "Herramienta foliadora de documentos/pdfs-foliados/"+ base
+                    newpath = "pdfs-foliados/"+ base
                     with open(newpath, "wb") as f:
                         output.write(f)
                     output = PdfFileWriter()
@@ -53,7 +59,7 @@ if __name__ == "__main__":
                         page.mergePage(numberLayer)
                         output.addPage(page)
                     if output.getNumPages():
-                        newpath = "Herramienta foliadora de documentos/pdfs-foliados/" + base
+                        newpath = "pdfs-foliados/" + base
                         with open(newpath, "wb") as f:
                             output.write(f)            
                 os.remove(tmp)
