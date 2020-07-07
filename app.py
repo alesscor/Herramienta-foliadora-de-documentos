@@ -1,5 +1,10 @@
 """
 # Aplicación foliadora de archivos PDF.
+Reconoce los siguientes argumentos:
+
+ - por_fecha, por_nombre: ordenamientos, por omisión es por_nombre
+ - solo_orden: argumento para detener el proceso luego de describir el orden
+
 Usa los siguientes directorios:
 
  - `pdfs-sin-foliar/`: archivos originales pendientes de foliar
@@ -7,10 +12,37 @@ Usa los siguientes directorios:
  - `pdfs-foliados/`: archivos nuevos con páginas foliadas
 
 """
+import os
+from shutil import move
 import reportlab
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
+
+def lista_archivos_ordenados(orden):
+    """
+        Obtiene los archivos a procesar con el orden indicado. Devuelve una lista de nombres.
+        - orden: por_fecha, por_nombre (valor por defecto)
+    """
+    lista_archivos=[]
+    if orden=="por_fecha":
+        from pathlib import Path
+        files = sorted(Path("pdfs-sin-foliar").iterdir(), key=os.path.getctime)
+        if len(files)>0:
+            print("archivos ordenados por fecha")
+            lista_archivos=[file.name for file in files]
+            primero,ultimo=files[0],files[-1]
+            print(f"primer archivo: {primero.name}")
+            print(f"último archivo: {ultimo.name}")
+    else:
+        lista_archivos=sorted(os.listdir("pdfs-sin-foliar"))
+        if len(lista_archivos)>0:
+            print("archivos ordenados por nombre")
+            primero,ultimo=lista_archivos[0],lista_archivos[-1]
+            print(f"primer archivo: {primero}")
+            print(f"último archivo: {ultimo}")
+    
+    return lista_archivos
 
 
 def secuencia_obtiene():
@@ -33,7 +65,7 @@ def secuencia_obtiene():
         clase_docs=texto.split(" ")[0]
         secuencia=int(texto.split(" ")[1])
 
-    return clase_docs,secuencia
+    return clase_docs, secuencia
 
 
 
@@ -66,7 +98,6 @@ def pdf_imprime_sellos(num, tmp, clase_docs, secuencia):
         lienzo.drawString((50)*mm, (-150)*mm, clase_docs + " - " + str(i+secuencia))
         lienzo.showPage()
     lienzo.save()
-    return
 
 
 
@@ -75,8 +106,6 @@ def pdf_mueve(nombre):
         Mueve el archivo procesado fuera del directorio de trabajo en la carpeta
         `pdfs-procesados`.
     """
-    import os
-    from shutil import move
     if not os.path.isdir("pdfs-procesados/"):
         os.mkdir("pdfs-procesados/")
     path1 = os.path.join("pdfs-sin-foliar", nombre)
@@ -86,16 +115,30 @@ def pdf_mueve(nombre):
 
 
 if __name__ == "__main__":
-    import os
+    import sys
     tmp = "__tmp.pdf"
+    argv = sys.argv
+    ordenamiento="por_nombre"
+    solo_orden=False
+    if "por_fecha" in argv:
+        ordenamiento="por_fecha"
+    solo_orden = "solo_orden" in argv
     
-    output = PdfFileWriter()
-
     (clase_docs,secuencia) = secuencia_obtiene()
-    lista_archivos=os.listdir("pdfs-sin-foliar")
+    lista_archivos=lista_archivos_ordenados(ordenamiento)
+
+    if len(lista_archivos)==0:
+        print("sin archivos para foliar")
+    if solo_orden:
+        exit()
+
+    output = PdfFileWriter()
     for filename in lista_archivos:
         base = os.path.basename(filename)
         path = os.path.join("pdfs-sin-foliar", filename)
+        if os.path.isdir(path):
+            # saltar directorios
+            continue
         if filename.endswith('.pdf'):
             with open(path, "rb") as f:
                 print(f"inicia con archivo {filename}")
@@ -132,5 +175,3 @@ if __name__ == "__main__":
         print("Fin del proceso")
     else:
         print("no hubo archivos para foliar")
-
-    
