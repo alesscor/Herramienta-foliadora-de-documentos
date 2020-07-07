@@ -1,5 +1,7 @@
 # esta app
 pdfs-foliados/
+pdfs-procesados/
+pdfs-sin-foliar/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
