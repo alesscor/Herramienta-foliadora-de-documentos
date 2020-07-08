@@ -11,6 +11,14 @@ Usa los siguientes directorios:
  - `pdfs-procesados/`: archivos originales ya foliados
  - `pdfs-foliados/`: archivos nuevos con páginas foliadas
 
+ Los archivos a sellar que son originales se toman de la carpeta `pdfs-sin-foliar` y luego 
+ se mueven a `pdfs-procesados`.
+
+ Se escriben los siguientes archivos:
+
+  - `historial.txt`: registro de archivos procesados con la secuencia inicial.
+  - `foliado.txt`: registro del siguiente sello.
+
 """
 import os
 from shutil import move

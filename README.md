@@ -10,3 +10,23 @@ Usa la filosofía de generar las páginas en blanco con el sello de control, par
 - Biblioteca `reportlab`, licencia [BSD](https://en.wikipedia.org/wiki/BSD_licenses). Descripción en (https://pypi.org/project/reportlab/).
 - Biblioteca `PyPDF2`, licencia [BSD](https://en.wikipedia.org/wiki/BSD_licenses). Descripción en (https://pypi.org/project/PyPDF2/)
 - Para la versión gráfica se piensa utilizar `wxPython`, licencia [wxWindows](https://opensource.org/licenses/wxwindows.php) (parecido a GPL con modificación).
+
+# Aplicación foliadora de archivos PDF
+Reconoce los siguientes argumentos:
+
+ - por_fecha, por_nombre: ordenamientos, por omisión es por_nombre
+ - solo_orden: argumento para detener el proceso luego de describir el orden
+
+Usa los siguientes directorios:
+
+ - `pdfs-sin-foliar/`: archivos originales pendientes de foliar
+ - `pdfs-procesados/`: archivos originales ya foliados
+ - `pdfs-foliados/`: archivos nuevos con páginas foliadas
+
+ Los archivos a sellar que son originales se toman de la carpeta `pdfs-sin-foliar` y luego 
+ se mueven a `pdfs-procesados`.
+
+ Se escriben los siguientes archivos:
+
+  - `historial.txt`: registro de archivos procesados con la secuencia inicial.
+  - `foliado.txt`: registro del siguiente sello.
