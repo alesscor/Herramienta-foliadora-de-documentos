@@ -27,7 +27,7 @@ def lista_archivos_ordenados(orden):
     lista_archivos=[]
     if orden=="por_fecha":
         from pathlib import Path
-        files = sorted(Path("pdfs-sin-foliar").iterdir(), key=os.path.getctime)
+        files = sorted(Path("pdfs-sin-foliar").iterdir(), key=os.path.getmtime)
         if len(files)>0:
             print("archivos ordenados por fecha")
             lista_archivos=[file.name for file in files]
@@ -113,6 +113,17 @@ def pdf_mueve(nombre):
     move(path1, path2)
 
 
+def historial_de_procesado_agrega(secuencia,nombrearchivo):
+    """
+        Agrega al historial el archivo de procesados.
+    """
+    try:
+        with open('historial.txt', 'a') as file1:
+            file1.write(str(secuencia)+" "+nombrearchivo+"\n")
+    except:
+        print("Archivo historial.txt no encontrado o con contenido inválido")
+
+
 
 if __name__ == "__main__":
     import sys
@@ -142,9 +153,10 @@ if __name__ == "__main__":
         if filename.endswith('.pdf'):
             with open(path, "rb") as f:
                 print(f"inicia con archivo {filename}")
-                pdf = PdfFileReader(f,strict=False)
+                historial_de_procesado_agrega(secuencia, filename)
+                pdf = PdfFileReader(f, strict=False)
                 n = pdf.getNumPages()
-                pdf_imprime_sellos(n,tmp,clase_docs,secuencia)
+                pdf_imprime_sellos(n, tmp, clase_docs, secuencia)
                 secuencia=secuencia+n
 
                 if not os.path.isdir("pdfs-foliados/"):
