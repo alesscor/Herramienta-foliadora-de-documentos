@@ -3,6 +3,8 @@ pdfs-foliados/
 pdfs-procesados/
 pdfs-sin-foliar/
 
+historial.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

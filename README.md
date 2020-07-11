@@ -30,3 +30,5 @@ Usa los siguientes directorios:
 
   - `historial.txt`: registro de archivos procesados con la secuencia inicial.
   - `foliado.txt`: registro del siguiente sello.
+
+En caso de excepción, en el historial queda el último archivo que se intentó abrir y procesar.

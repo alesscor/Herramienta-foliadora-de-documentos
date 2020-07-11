@@ -19,6 +19,8 @@ Usa los siguientes directorios:
   - `historial.txt`: registro de archivos procesados con la secuencia inicial.
   - `foliado.txt`: registro del siguiente sello.
 
+ En caso de excepción, en el historial queda el último archivo que se intentó abrir y procesar.
+
 """
 import os
 from shutil import move
@@ -26,31 +28,6 @@ import reportlab
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
-
-def lista_archivos_ordenados(orden):
-    """
-        Obtiene los archivos a procesar con el orden indicado. Devuelve una lista de nombres.
-        - orden: por_fecha, por_nombre (valor por defecto)
-    """
-    lista_archivos=[]
-    if orden=="por_fecha":
-        from pathlib import Path
-        files = sorted(Path("pdfs-sin-foliar").iterdir(), key=os.path.getmtime)
-        if len(files)>0:
-            print("archivos ordenados por fecha")
-            lista_archivos=[file.name for file in files]
-            primero,ultimo=files[0],files[-1]
-            print(f"primer archivo: {primero.name}")
-            print(f"último archivo: {ultimo.name}")
-    else:
-        lista_archivos=sorted(os.listdir("pdfs-sin-foliar"))
-        if len(lista_archivos)>0:
-            print("archivos ordenados por nombre")
-            primero,ultimo=lista_archivos[0],lista_archivos[-1]
-            print(f"primer archivo: {primero}")
-            print(f"último archivo: {ultimo}")
-    
-    return lista_archivos
 
 
 def secuencia_obtiene():
@@ -76,7 +53,6 @@ def secuencia_obtiene():
     return clase_docs, secuencia
 
 
-
 def secuencia_actualiza(clase_docs:str,secuencia:int):
     """
         Escribe el siguiente sello en el archivo `foliado.txt`.
@@ -89,6 +65,44 @@ def secuencia_actualiza(clase_docs:str,secuencia:int):
         print("Archivo foliado.txt no encontrado o con contenido inválido")
 
 
+def historial_de_procesado_agrega(secuencia,nombrearchivo):
+    """
+        Agrega al historial el archivo de procesados.
+    """
+    try:
+        with open('historial.txt', 'a') as file1:
+            file1.write(str(secuencia)+" "+nombrearchivo+"\n")
+    except:
+        print("Archivo historial.txt no encontrado o con contenido inválido")
+
+
+def pdf_lista_archivos_ordenados(orden):
+    """
+        Obtiene los archivos PDF a procesar con el orden indicado. Devuelve una lista de nombres.
+        - orden: por_fecha, por_nombre (valor por defecto)
+    """
+    from pathlib import Path
+    lista_archivos=[]
+    if orden=="por_fecha":
+        from datetime import datetime
+        files = sorted(Path().rglob("pdfs-sin-foliar/*.pdf"), key=os.path.getmtime)
+        if len(files)>0:
+            lista_archivos=[file.name for file in files]
+            print(f"{len(lista_archivos)} archivos PDF ordenados por fecha de modificación")
+            primero,ultimo=files[0],files[-1]
+            print(f"primer archivo: {datetime.fromtimestamp(os.path.getmtime(primero))} {primero.name}")
+            print(f"último archivo: {datetime.fromtimestamp(os.path.getmtime(ultimo))} {ultimo.name}")
+    else:
+        files = sorted(Path().rglob("pdfs-sin-foliar/*.pdf"), key=lambda x: x.name.lower())
+        if len(files)>0:
+            lista_archivos=[file.name for file in files]
+            print(f"{len(lista_archivos)} archivos PDF ordenados por nombre")
+            primero,ultimo=files[0],files[-1]
+            print(f"primer archivo: {primero.name}")
+            print(f"último archivo: {ultimo.name}")    
+    return lista_archivos
+
+
 
 def pdf_imprime_sellos(num, tmp, clase_docs, secuencia):
     """
@@ -96,11 +110,8 @@ def pdf_imprime_sellos(num, tmp, clase_docs, secuencia):
     """
     lienzo = canvas.Canvas(tmp)
     for i in range(0,num): 
-        # lienzo.rotate(90)
         lienzo.setFont("Helvetica", 20)
         lienzo.setFillColorRGB(0, 0, 0.77)
-        # lienzo.drawString((5)*mm, (-5)*mm, clase_docs + " - " + str(i+secuencia)) # izquierda abajo paralelo-lado
-        # lienzo.drawString(0, 0, clase_docs + " - " + str(i+secuencia)) # izquierda abajo paralelo-abajo
         lienzo.setFont("Helvetica",20)
         lienzo.rotate(90)
         lienzo.drawString((50)*mm, (-150)*mm, clase_docs + " - " + str(i+secuencia))
@@ -121,17 +132,6 @@ def pdf_mueve(nombre):
     move(path1, path2)
 
 
-def historial_de_procesado_agrega(secuencia,nombrearchivo):
-    """
-        Agrega al historial el archivo de procesados.
-    """
-    try:
-        with open('historial.txt', 'a') as file1:
-            file1.write(str(secuencia)+" "+nombrearchivo+"\n")
-    except:
-        print("Archivo historial.txt no encontrado o con contenido inválido")
-
-
 
 if __name__ == "__main__":
     import sys
@@ -144,15 +144,15 @@ if __name__ == "__main__":
     solo_orden = "solo_orden" in argv
     
     (clase_docs,secuencia) = secuencia_obtiene()
-    lista_archivos=lista_archivos_ordenados(ordenamiento)
+    lista_archivos_pdf=pdf_lista_archivos_ordenados(ordenamiento)
 
-    if len(lista_archivos)==0:
+    if len(lista_archivos_pdf)==0:
         print("sin archivos para foliar")
     if solo_orden:
         exit()
 
     output = PdfFileWriter()
-    for filename in lista_archivos:
+    for filename in lista_archivos_pdf:
         base = os.path.basename(filename)
         path = os.path.join("pdfs-sin-foliar", filename)
         if os.path.isdir(path):
@@ -190,7 +190,7 @@ if __name__ == "__main__":
             pdf_mueve(filename)
             print(f"termina con archivo {filename}")
 
-    if len(lista_archivos)>0:
+    if len(lista_archivos_pdf)>0:
         secuencia_actualiza(clase_docs, secuencia)        
         print("Fin del proceso")
     else:
