@@ -4,6 +4,8 @@ pdfs-procesados/
 pdfs-sin-foliar/
 
 historial.txt
+.vscode/
+settings.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -29,6 +29,11 @@ from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
+PDFS_SIN_FOLIAR="pdfs-sin-foliar"
+PDFS_PROCESADOS="pdfs-procesados"
+PDFS_FOLIADOS="pdfs-foliados"
+TXT_HISTORIAL="historial.txt"
+TXT_FOLIADO="foliado.txt"
 
 def secuencia_obtiene():
     """
@@ -38,11 +43,11 @@ def secuencia_obtiene():
     clase_docs = "Ninguno"
     secuencia = 1    
     try:
-        file1 = open("foliado.txt","r") 
+        file1 = open(TXT_FOLIADO,"r") 
         texto = file1.readline()
     except:
         texto = f"{clase_docs} {secuencia}"
-        print("Archivo foliado.txt no encontrado o con contenido inválido")
+        print(f"Archivo {TXT_FOLIADO} no encontrado o con contenido inválido")
     if " - " in texto:
         clase_docs=texto.split(" - ")[0]
         secuencia=int(texto.split(" - ")[1])
@@ -58,11 +63,11 @@ def secuencia_actualiza(clase_docs:str,secuencia:int):
         Escribe el siguiente sello en el archivo `foliado.txt`.
     """
     try:
-        with open('foliado.txt', 'w') as file1:
+        with open(TXT_FOLIADO, 'w') as file1:
             file1.write(f"{clase_docs} - {secuencia}")
             print(f"siguiente sello: {clase_docs} - {secuencia}")
     except:
-        print("Archivo foliado.txt no encontrado o con contenido inválido")
+        print(f"Archivo {TXT_FOLIADO} no encontrado o con contenido inválido")
 
 
 def historial_de_procesado_agrega(secuencia,nombrearchivo):
@@ -70,10 +75,10 @@ def historial_de_procesado_agrega(secuencia,nombrearchivo):
         Agrega al historial el archivo de procesados.
     """
     try:
-        with open('historial.txt', 'a') as file1:
+        with open(TXT_HISTORIAL, 'a') as file1:
             file1.write(str(secuencia)+" "+nombrearchivo+"\n")
     except:
-        print("Archivo historial.txt no encontrado o con contenido inválido")
+        print(f"Archivo {TXT_HISTORIAL} no encontrado o con contenido inválido")
 
 
 def pdf_lista_archivos_ordenados(orden):
@@ -85,7 +90,7 @@ def pdf_lista_archivos_ordenados(orden):
     lista_archivos=[]
     if orden=="por_fecha":
         from datetime import datetime
-        files = sorted(Path().rglob("pdfs-sin-foliar/*.pdf"), key=os.path.getmtime)
+        files = sorted(Path().rglob(f"{PDFS_SIN_FOLIAR}/*.pdf"), key=os.path.getmtime)
         if len(files)>0:
             lista_archivos=[file.name for file in files]
             print(f"{len(lista_archivos)} archivos PDF ordenados por fecha de modificación")
@@ -93,7 +98,7 @@ def pdf_lista_archivos_ordenados(orden):
             print(f"primer archivo: {datetime.fromtimestamp(os.path.getmtime(primero))} {primero.name}")
             print(f"último archivo: {datetime.fromtimestamp(os.path.getmtime(ultimo))} {ultimo.name}")
     else:
-        files = sorted(Path().rglob("pdfs-sin-foliar/*.pdf"), key=lambda x: x.name.lower())
+        files = sorted(Path().rglob(f"{PDFS_SIN_FOLIAR}/*.pdf"), key=lambda x: x.name.lower())
         if len(files)>0:
             lista_archivos=[file.name for file in files]
             print(f"{len(lista_archivos)} archivos PDF ordenados por nombre")
@@ -125,10 +130,10 @@ def pdf_mueve(nombre):
         Mueve el archivo procesado fuera del directorio de trabajo en la carpeta
         `pdfs-procesados`.
     """
-    if not os.path.isdir("pdfs-procesados/"):
-        os.mkdir("pdfs-procesados/")
-    path1 = os.path.join("pdfs-sin-foliar", nombre)
-    path2 = os.path.join("pdfs-procesados", nombre)
+    if not os.path.isdir(f"{PDFS_PROCESADOS}/"):
+        os.mkdir(f"{PDFS_PROCESADOS}/")
+    path1 = os.path.join(PDFS_SIN_FOLIAR, nombre)
+    path2 = os.path.join(PDFS_PROCESADOS, nombre)
     move(path1, path2)
 
 
@@ -154,7 +159,7 @@ if __name__ == "__main__":
     output = PdfFileWriter()
     for filename in lista_archivos_pdf:
         base = os.path.basename(filename)
-        path = os.path.join("pdfs-sin-foliar", filename)
+        path = os.path.join(PDFS_SIN_FOLIAR, filename)
         if os.path.isdir(path):
             # saltar directorios
             continue
@@ -167,11 +172,11 @@ if __name__ == "__main__":
                 pdf_imprime_sellos(n, tmp, clase_docs, secuencia)
                 secuencia=secuencia+n
 
-                if not os.path.isdir("pdfs-foliados/"):
-                    os.mkdir("pdfs-foliados/")
+                if not os.path.isdir(f"{PDFS_FOLIADOS}/"):
+                    os.mkdir(f"{PDFS_FOLIADOS}/")
                 with open(tmp, "rb") as ftmp:
                     numberPdf = PdfFileReader(ftmp)
-                    newpath = "pdfs-foliados/"+ base
+                    newpath = f"{PDFS_FOLIADOS}/"+ base
                     with open(newpath, "wb") as f:
                         output.write(f)
                     output = PdfFileWriter()
@@ -183,7 +188,7 @@ if __name__ == "__main__":
                         page.mergePage(numberLayer)
                         output.addPage(page)
                     if output.getNumPages():
-                        newpath = "pdfs-foliados/" + base
+                        newpath = f"{PDFS_FOLIADOS}/" + base
                         with open(newpath, "wb") as f:
                             output.write(f)            
                 os.remove(tmp)
