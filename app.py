@@ -27,6 +27,7 @@
 
  Reconoce los siguientes argumentos:
 
+ - `ayuda`: despliega la documentación de la aplicación
  - `por_fecha`, `por_nombre`: ordenamientos, por omisión es por_nombre
  - `solo_orden`: argumento para detener el proceso luego de describir el orden
  - `no_consultar`: argumento para no consultar si debe realizarse el proceso luego
