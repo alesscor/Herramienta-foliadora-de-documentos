@@ -12,11 +12,7 @@ Usa la técnica de generar las páginas en blanco con el sello de control, para 
 - Para una posible versión gráfica se piensa utilizar `wxPython`, licencia [wxWindows](https://opensource.org/licenses/wxwindows.php) (parecido a GPL con modificación).
 - Por ahora el usuario no ha solicitado versión gráfica, en ambiente Windows 10 ha bastado con la simple interfaz de archivos `.bat` incluyendo `PAUSE` para ver resultados.
 
-# Aplicación foliadora de archivos PDF
-Reconoce los siguientes argumentos:
-
- - por_fecha, por_nombre: ordenamientos, por omisión es por_nombre
- - solo_orden: argumento para detener el proceso luego de describir el orden
+# Aplicación foliadora de archivos PDF.
 
 Usa los siguientes directorios:
 
@@ -27,9 +23,21 @@ Usa los siguientes directorios:
  Los archivos a sellar que son originales se toman de la carpeta `pdfs-sin-foliar` y luego 
  se mueven a `pdfs-procesados`.
 
+ Se lee el siguiente archivo:
+
+ - `foliado.txt`: registro del siguiente sello.
+
  Se escriben los siguientes archivos:
 
   - `historial.txt`: registro de archivos procesados con la secuencia inicial.
   - `foliado.txt`: registro del siguiente sello.
 
-En caso de excepción, en el historial queda el último archivo que se intentó abrir y procesar.
+ En caso de excepción, en el historial queda el último archivo que se intentó abrir y procesar.
+
+ Reconoce los siguientes argumentos:
+
+ - `por_fecha`, `por_nombre`: ordenamientos, por omisión es por_nombre
+ - `solo_orden`: argumento para detener el proceso luego de describir el orden
+ - `no_consultar`: argumento para no consultar si debe realizarse el proceso luego
+   de conocer el orden de los archivos.
+
