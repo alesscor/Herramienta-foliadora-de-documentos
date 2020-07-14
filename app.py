@@ -1,11 +1,7 @@
 """
 # Aplicación foliadora de archivos PDF.
-Reconoce los siguientes argumentos:
 
- - por_fecha, por_nombre: ordenamientos, por omisión es por_nombre
- - solo_orden: argumento para detener el proceso luego de describir el orden
-
-Usa los siguientes directorios:
+ Usa los siguientes directorios:
 
  - `pdfs-sin-foliar/`: archivos originales pendientes de foliar
  - `pdfs-procesados/`: archivos originales ya foliados
@@ -14,6 +10,10 @@ Usa los siguientes directorios:
  Los archivos a sellar que son originales se toman de la carpeta `pdfs-sin-foliar` y luego 
  se mueven a `pdfs-procesados`.
 
+ Se lee el siguiente archivo:
+ 
+ - `foliado.txt`: registro del siguiente sello.
+
  Se escriben los siguientes archivos:
 
   - `historial.txt`: registro de archivos procesados con la secuencia inicial.
@@ -21,19 +21,28 @@ Usa los siguientes directorios:
 
  En caso de excepción, en el historial queda el último archivo que se intentó abrir y procesar.
 
+ Reconoce los siguientes argumentos:
+
+ - `por_fecha`, `por_nombre`: ordenamientos, por omisión es por_nombre
+ - `solo_orden`: argumento para detener el proceso luego de describir el orden
+ - `no_consultar`: argumento para no consultar si debe realizarse el proceso luego
+    de conocer el orden de los archivos.
+
 """
 import os
+import sys
 from shutil import move
 import reportlab
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from PyPDF2 import PdfFileWriter, PdfFileReader
 
-PDFS_SIN_FOLIAR="pdfs-sin-foliar"
-PDFS_PROCESADOS="pdfs-procesados"
-PDFS_FOLIADOS="pdfs-foliados"
-TXT_HISTORIAL="historial.txt"
-TXT_FOLIADO="foliado.txt"
+PDFS_SIN_FOLIAR = "pdfs-sin-foliar"
+PDFS_PROCESADOS = "pdfs-procesados"
+PDFS_FOLIADOS = "pdfs-foliados"
+PDFS_TEMPORAL = "__tmp.pdf"
+TXT_HISTORIAL = "historial.txt"
+TXT_FOLIADO = "foliado.txt"
 
 def secuencia_obtiene():
     """
@@ -65,7 +74,7 @@ def secuencia_actualiza(clase_docs:str,secuencia:int):
     try:
         with open(TXT_FOLIADO, 'w') as file1:
             file1.write(f"{clase_docs} - {secuencia}")
-            print(f"siguiente sello: {clase_docs} - {secuencia}")
+            print(f"Siguiente sello: {clase_docs} - {secuencia}")
     except:
         print(f"Archivo {TXT_FOLIADO} no encontrado o con contenido inválido")
 
@@ -88,25 +97,30 @@ def pdf_lista_archivos_ordenados(orden):
     """
     from pathlib import Path
     lista_archivos=[]
+
+    if not os.path.isdir(f"{PDFS_SIN_FOLIAR}/"):
+        os.mkdir(f"{PDFS_SIN_FOLIAR}/")
+        print(f"Se generó la carpeta '{PDFS_SIN_FOLIAR}' para que ahí incorpore los archivos sin foliar")
+        return lista_archivos
+
     if orden=="por_fecha":
         from datetime import datetime
         files = sorted(Path().rglob(f"{PDFS_SIN_FOLIAR}/*.pdf"), key=os.path.getmtime)
         if len(files)>0:
             lista_archivos=[file.name for file in files]
-            print(f"{len(lista_archivos)} archivos PDF ordenados por fecha de modificación")
+            print(f"{len(lista_archivos)} archivos PDF ordenados por fecha de modificación:")
             primero,ultimo=files[0],files[-1]
-            print(f"primer archivo: {datetime.fromtimestamp(os.path.getmtime(primero))} {primero.name}")
-            print(f"último archivo: {datetime.fromtimestamp(os.path.getmtime(ultimo))} {ultimo.name}")
+            print(f"Primer archivo: {datetime.fromtimestamp(os.path.getmtime(primero))} {primero.name}")
+            print(f"Último archivo: {datetime.fromtimestamp(os.path.getmtime(ultimo))} {ultimo.name}\n")
     else:
         files = sorted(Path().rglob(f"{PDFS_SIN_FOLIAR}/*.pdf"), key=lambda x: x.name.lower())
         if len(files)>0:
             lista_archivos=[file.name for file in files]
             print(f"{len(lista_archivos)} archivos PDF ordenados por nombre")
             primero,ultimo=files[0],files[-1]
-            print(f"primer archivo: {primero.name}")
-            print(f"último archivo: {ultimo.name}")    
+            print(f"Primer archivo: {primero.name}")
+            print(f"Último archivo: {ultimo.name}\n")    
     return lista_archivos
-
 
 
 def pdf_imprime_sellos(num, tmp, clase_docs, secuencia):
@@ -124,7 +138,6 @@ def pdf_imprime_sellos(num, tmp, clase_docs, secuencia):
     lienzo.save()
 
 
-
 def pdf_mueve(nombre):
     """
         Mueve el archivo procesado fuera del directorio de trabajo en la carpeta
@@ -137,24 +150,36 @@ def pdf_mueve(nombre):
     move(path1, path2)
 
 
-
 if __name__ == "__main__":
-    import sys
-    tmp = "__tmp.pdf"
+    print("\nHerramienta foliadora de archivos en formato PDF.\n")
     argv = sys.argv
-    ordenamiento="por_nombre"
-    solo_orden=False
-    if "por_fecha" in argv:
-        ordenamiento="por_fecha"
+    continuar = True
+    ordenamiento = "por_nombre"
     solo_orden = "solo_orden" in argv
-    
+    consultar = not "no_consultar" in argv
+    if "ayuda" in argv or "help" in argv:
+        print(__doc__)
+        exit()
+    if "por_fecha" in argv:
+        ordenamiento = "por_fecha"
+
     (clase_docs,secuencia) = secuencia_obtiene()
-    lista_archivos_pdf=pdf_lista_archivos_ordenados(ordenamiento)
+    lista_archivos_pdf = pdf_lista_archivos_ordenados(ordenamiento)
 
     if len(lista_archivos_pdf)==0:
-        print("sin archivos para foliar")
+        print("Sin archivos para foliar")
+        exit()
     if solo_orden:
         exit()
+
+    if consultar:
+        captura = input("\nIngrese la palabra 'salir' para salir, otro ingreso o solo enter continuará con el proceso: ")
+    continuar = captura.lower() != "salir"
+    if not continuar:
+        print("\nFin del proceso")
+        exit()
+
+    print("\n")
 
     output = PdfFileWriter()
     for filename in lista_archivos_pdf:
@@ -165,16 +190,16 @@ if __name__ == "__main__":
             continue
         if filename.endswith('.pdf'):
             with open(path, "rb") as f:
-                print(f"inicia con archivo {filename}")
+                print(f"Inicia con archivo {filename}")
                 historial_de_procesado_agrega(secuencia, filename)
                 pdf = PdfFileReader(f, strict=False)
                 n = pdf.getNumPages()
-                pdf_imprime_sellos(n, tmp, clase_docs, secuencia)
+                pdf_imprime_sellos(n, PDFS_TEMPORAL, clase_docs, secuencia)
                 secuencia=secuencia+n
 
                 if not os.path.isdir(f"{PDFS_FOLIADOS}/"):
                     os.mkdir(f"{PDFS_FOLIADOS}/")
-                with open(tmp, "rb") as ftmp:
+                with open(PDFS_TEMPORAL, "rb") as ftmp:
                     numberPdf = PdfFileReader(ftmp)
                     newpath = f"{PDFS_FOLIADOS}/"+ base
                     with open(newpath, "wb") as f:
@@ -191,12 +216,12 @@ if __name__ == "__main__":
                         newpath = f"{PDFS_FOLIADOS}/" + base
                         with open(newpath, "wb") as f:
                             output.write(f)            
-                os.remove(tmp)
+                os.remove(PDFS_TEMPORAL)
             pdf_mueve(filename)
-            print(f"termina con archivo {filename}")
+            print(f"Termina con archivo {filename}\n")
 
     if len(lista_archivos_pdf)>0:
         secuencia_actualiza(clase_docs, secuencia)        
-        print("Fin del proceso")
+        print("\nFin del proceso")
     else:
-        print("no hubo archivos para foliar")
+        print("\nNo hubo archivos para foliar")
