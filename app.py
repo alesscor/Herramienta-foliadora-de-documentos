@@ -1,5 +1,9 @@
 """
-# Aplicación foliadora de archivos PDF.
+# Aplicación foliadora de archivos PDF
+
+ Herramienta para imprimir una secuencia numérica de control en archivos
+ de formato PDF, ordenando los archivos por su nombre o por su fecha
+ de modificación.
 
  Usa los siguientes directorios:
 

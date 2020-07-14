@@ -1,7 +1,7 @@
 # Introducción 
 Herramienta para escribir secuencia de control en archivos de formato PDF.
 
-Usa la técnica de generar las páginas en blanco con el sello de control, para luego imprimirlo en el documento con el contenido, dejándolo en carpeta `pdfs-foliados`.
+Emplea la técnica de generar las páginas en blanco con el sello de control, para luego imprimirlo en el documento con el contenido, dejándolo en carpeta `pdfs-foliados`.
 
 ## Versión original
 - Tomado del trabajo de Lei Yang (https://gist.github.com/DIYer22/b9ede6b5b96109788a47973649645c1f), usando componentes de `reportlab`.
@@ -12,9 +12,13 @@ Usa la técnica de generar las páginas en blanco con el sello de control, para 
 - Para una posible versión gráfica se piensa utilizar `wxPython`, licencia [wxWindows](https://opensource.org/licenses/wxwindows.php) (parecido a GPL con modificación).
 - Por ahora el usuario no ha solicitado versión gráfica, en ambiente Windows 10 ha bastado con la simple interfaz de archivos `.bat` incluyendo `PAUSE` para ver resultados.
 
-# Aplicación foliadora de archivos PDF.
+# Aplicación foliadora de archivos PDF
 
-Usa los siguientes directorios:
+ Herramienta para imprimir una secuencia numérica de control en archivos
+ de formato PDF, ordenando los archivos por su nombre o por su fecha
+ de modificación.
+
+ Usa los siguientes directorios:
 
  - `pdfs-sin-foliar/`: archivos originales pendientes de foliar
  - `pdfs-procesados/`: archivos originales ya foliados
